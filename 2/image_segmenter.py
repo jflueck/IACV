@@ -11,7 +11,7 @@ from extract_patches import extract_patches
 
 
 class ImageSegmenter:
-    def __init__(self, k_fg=2, k_bg=5, mode='kmeans'):
+    def __init__(self, k_fg=5, k_bg=8, mode='kmeans'):
         """ Feel free to add any hyper-parameters to the ImageSegmenter.
             
             But note:
