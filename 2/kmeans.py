@@ -22,14 +22,25 @@ def kmeans_fit(data, k, rng, n_iter=500, tol=1.e-4):
     # Initialise clusters - use the provided random number generator
     centroids = data[rng.choice(N, k, replace=False)]
     
-    # Iterate the k-means update steps
-    #
-    # TO IMPLEMENT
-    #
-            
     # Return cluster centers
+    for i in range(n_iter):
+        # Compute distances from data points to centroids
+        distances = compute_distance(data, centroids)
+        
+        # Assign each data point to the closest centroid
+        labels = np.argmin(distances, axis=1)
+        
+        # Compute new centroids
+        new_centroids = np.array([data[labels == cluster].mean(axis=0) for cluster in range(k)])
+        
+        # Check for convergence
+        decrease = np.linalg.norm(new_centroids - centroids)
+      #  print(f"Iteration {i}: Centroid change = {decrease:.6f}")
+        if np.linalg.norm(decrease) < tol:
+            break
+        
+        centroids = new_centroids
     return centroids
-
 
 def compute_distance(data, clusters):
     """
@@ -42,10 +53,8 @@ def compute_distance(data, clusters):
     Returns:
         distances ... n_samples x n_clusters
     """
-    
-    # TO IMPLEMENT
-    return -1
-
+    distances = np.linalg.norm(data[:, np.newaxis] - clusters, axis=2)
+    return distances
 
 def kmeans_predict_idx(data, clusters):
     """
@@ -57,7 +66,6 @@ def kmeans_predict_idx(data, clusters):
     """
     # TO IMPLEMENT
     return -1
-
 
 def kNN(data_train, labels_train, data_test, k):
     """
@@ -73,9 +81,20 @@ def kNN(data_train, labels_train, data_test, k):
     Returns:
         labels_test   ... n_testing_samples
     """
-    # TO IMPLEMENT
-    return -1
-
+    labels_test = []
+    for test_point in data_test:
+        # Compute distances from the test point to all training points
+        distances = np.linalg.norm(data_train - test_point, axis=1)
+        
+        # Find the k nearest neighbors
+        nearest_neighbors_indices = np.argsort(distances)[:k]
+        nearest_labels = labels_train[nearest_neighbors_indices]
+        
+        # Majority voting
+        label = np.bincount(nearest_labels).argmax()
+        labels_test.append(label)
+    
+    return np.array(labels_test)
 
 def check_kmeans(kmeans_fit_fn, val_path):
     """
@@ -125,7 +144,6 @@ def check_kmeans(kmeans_fit_fn, val_path):
 
     print("Check passed :-)")
     return None
-
 
 def check_kNN(kNN_fn, display_prediction=True):
     """

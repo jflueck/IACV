@@ -36,12 +36,10 @@ class ImageSegmenter:
         img = sample_dd['img']
         H, W, C = img.shape
         
-        #
-        # TO IMPLEMENT
-        #
-
-        # For now this only extracts intensities
-        return img
+        # Extract intensities as features
+        features = img.reshape(-1, C)
+        
+        return features
     
     def segment_image_dummy(self, sample_dd):
         return sample_dd['scribble_fg']
@@ -49,14 +47,33 @@ class ImageSegmenter:
     def segment_image_kmeans(self, sample_dd):
         """ Segment images using k means """
         H, W, C = sample_dd['img'].shape
-        features = self.extract_features_(sample_dd)
-        
-        #
-        # TO IMPLEMENT
-        #
+        # Extract features of the foreground
+        fg_mask = sample_dd['scribble_fg'] > 0
+        bg_mask = sample_dd['scribble_bg'] > 0
 
-        # For now return scribble
-        return self.segment_image_dummy(sample_dd)
+        features = self.extract_features_(sample_dd)
+        features_fg = features[fg_mask.reshape(-1)]
+        features_bg = features[bg_mask.reshape(-1)]
+        
+        # Stack the foreground and background features
+        features_fg_bg = np.vstack((features_fg, features_bg))
+        
+        centroids_fg = kmeans_fit(features_fg, self.k_fg, self.rng)
+        centroids_bg = kmeans_fit(features_bg, self.k_bg, self.rng)
+
+        # Combine centroids for distance computation
+        all_centroids = np.vstack((centroids_fg, centroids_bg))
+        
+        # Compute distances to all centroids at once
+        distances = compute_distance(features, all_centroids)
+        
+        # Assign each data point to the closest centroid
+        labels = np.argmin(distances, axis=1)
+        
+        # Create a mask for the foreground
+        fg_mask = labels < self.k_fg
+        
+        return fg_mask.reshape(H, W).astype(np.uint8)
 
     def segment_image(self, sample_dd):
         """ Feel free to add other methods """

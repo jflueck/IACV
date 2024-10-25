@@ -1,0 +1,6 @@
+{
+    "python.defaultInterpreterPath": "/Users/joelflueckiger/Desktop/IACV/iacv_env/bin/python",
+    "jupyter.debugJustMyCode": false,
+    "jupyter.showVariableViewWhenDebugging": true,
+    "notebook.experimental.variablesView": true
+}
