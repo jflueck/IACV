@@ -35,10 +35,10 @@ class ImageSegmenter:
         
         img = sample_dd['img']
         H, W, C = img.shape
-        
+        p = 3
         # Extract intensities as features
-        features = img.reshape(-1, C)
-        
+        features = extract_patches(img, p)
+        features = features.reshape(-1, C*p*p)
         return features
     
     def segment_image_dummy(self, sample_dd):
