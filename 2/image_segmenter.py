@@ -36,9 +36,19 @@ class ImageSegmenter:
         img = sample_dd['img']
         H, W, C = img.shape
         p = 3
+        
         # Extract intensities as features
-        features = extract_patches(img, p)
-        features = features.reshape(-1, C*p*p)
+        # comment this line if you want to use patches
+        color_features = img.reshape(-1, C)
+        #color_features = extract_patches(img, p)
+        #color_features = color_features.reshape(-1, C*p*p)
+
+        # Create a grid of pixel positions
+        x, y = np.meshgrid(np.arange(W), np.arange(H))
+        positions = np.stack((x, y), axis=-1).reshape(-1, 2)
+        
+        # Combine color features with pixel positions
+        features = np.hstack((color_features, positions))
         return features
     
     def segment_image_dummy(self, sample_dd):

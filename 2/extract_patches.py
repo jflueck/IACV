@@ -18,7 +18,6 @@ def extract_patches(img, p):
 
     return patches
 
-
 def check_patch_extraction(extract_patches_fn):
     """ This function checks, whether patch extraction is implemented correctly
         <extract_patches_fn> is a callable function
