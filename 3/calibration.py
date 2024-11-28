@@ -32,18 +32,14 @@ def estimate_f_b(calib_dict, calib_points, n_points=None):
         f   ... Focal lenght [mm]
         b   ... Baseline [mm]
     """
-    # Choose n_points from DataFrame
-    if n_points is not None:
-        calib_points = calib_points.head(n_points)
-    else: 
-        n_points = len(calib_points)
-
     X = calib_points['X [mm]'][0]
+    Z = calib_points['Z [mm]'][0]
     u_l = calib_points['ul [px]'][0]
     u_r = calib_points['ur [px]'][0]
-    kx = calib_dict['width'] / calib_dict['aperture_w']
+    o_x = calib_dict['o_x']
+    m_x = calib_dict['mx']
 
-    b = X*(u_l - u_r)/u_l
-    f = (u_l-u_r)/(b*kx)
+    f = (u_l - o_x) * Z / (X * m_x)
+    b = X - ((u_r - o_x) * Z / (f * m_x))
 
     return f, b

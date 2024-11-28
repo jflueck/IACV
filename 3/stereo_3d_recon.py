@@ -4,7 +4,7 @@ from calibration import compute_mx_my, estimate_f_b
 from extract_patches import extract_patches
 
 
-def triangulate(u_left, u_right, v, calib_dict):
+def triangulate(u_left, u_right, v_left, calib_dict):
     """
     Triangulate (determine 3D world coordinates) a set of points given their projected coordinates in two images.
     These equations are according to the simple setup, where C' = (b, 0, 0)
@@ -33,9 +33,9 @@ def triangulate(u_left, u_right, v, calib_dict):
     disparities[disparities == 0] = 1e-6
 
     # Compute 3D coordinates
-    z = f * b / disparities
-    x = (u_left - o_x) * z / mx
-    y = (v - o_y) * z / my
+    z = f * b * mx / disparities
+    x = (u_left - o_x) * z / (mx * f)
+    y = (v_left - o_y) * z / (my * f)
 
     # Stack coordinates
     points = np.stack((x, y, z), axis=-1)
@@ -76,24 +76,30 @@ def compute_ncc(img_l, img_r, p):
     # Extract patches - patches_l/r are NumPy arrays of shape H, W, C * (2*p+1)**2
     patches_l = extract_patches(img_l, 2*p+1)
     patches_r = extract_patches(img_r, 2*p+1)
-    
+            
+    # Reshape patches for matrix multiplication
+    patches_l = patches_l.reshape(H, W, -1)
+    patches_r = patches_r.reshape(H, W, -1)
+
     # Standardize each patch
-    #
-    # TO IMPLEMENT
-    #
-    
-    # Compute correlation (using matrix multiplication) - corr will be of shape H, W, W
-    #
-    # TO IMPLEMENT
-    #
-    corr = np.zeros(H, W, W)
-    
+    patches_l_mean = np.mean(patches_l, axis=-1, keepdims=True)
+    patches_r_mean = np.mean(patches_r, axis=-1, keepdims=True)
+
+    patches_l_std = np.std(patches_l, axis=-1, keepdims=True)
+    patches_r_std = np.std(patches_r, axis=-1, keepdims=True)
+
+    patches_l = (patches_l - patches_l_mean) / patches_l_std
+    patches_r = (patches_r - patches_r_mean) / patches_r_std
+
+
+    # Compute correlation using matrix multiplication
+    corr = np.matmul(patches_l, patches_r.transpose(0, 2, 1))
+
     # Ignore boundaries
     return corr[p:H-p, p:W-p, p:W-p]
 
-
 class Stereo3dReconstructor:
-    def __init__(self, p=5, w_mode='none'):
+    def __init__(self, p=10, w_mode='none'):
         """
         Feel free to add hyper parameters here, but be sure to set defaults
         
@@ -156,20 +162,20 @@ class Stereo3dReconstructor:
         # Compute normalized cross correlation & find correspondece
         corr = compute_ncc(img_l, img_r, self.p)
 
-        # Find correspondence
-        #
-        # TO IMPLEMENT
-        #
-        u_right = np.zeros_like(u_left)
-        
+        # Find best match correspondence
+        u_right = np.argmax(corr, axis=2)
+                
         # Set certainty
-        #
-        # TO IMPLEMENT
-        #
+        
         if self.w_mode == 'none':
             certainty_score = np.ones((H_small, W_small), dtype=float)
         else:
-            raise NotImplementedError("Implement your own certainty estimation")
+            # The certainty score is a measure of how confident we are in the correctness of the disparity estimation.
+            # The score should be high where the NCC is high and low where the NCC is low.        
+            certainty_score = np.max(corr, axis=2)
+
+            # Normalize the certainty score between zero and one for all pixels
+            certainty_score = (certainty_score - np.min(certainty_score)) / (np.max(certainty_score) - np.min(certainty_score))
         
         # Triangulate the points to get 3D world coordinates
         points = triangulate(

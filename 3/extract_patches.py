@@ -3,19 +3,20 @@ import numpy as np
 
 def extract_patches(img, p):
     """
-    Extract all patches of size <p> from image. Assume circular padding.
+    Extract all patches of size <p> from image.
 
     Returns:
         patches ... Array of shape H x W x C*p**2, where last dimension holds flattened patches
     """
-    
-    #
-    # TO IMPLEMENT
-    #
+    H, W, C = img.shape
+    patches = np.zeros((H, W, C * p * p))
 
-    # For now just repeat image - you should replace this
-    return np.tile(img, (1,p**2))
+    for i in range(p):
+        for j in range(p):
+            rolled_img = np.roll(np.roll(img, -i+1, axis=0), -j+1, axis=1)
+            patches[:, :, (i * p + j) * C:(i * p + j + 1) * C] = rolled_img
 
+    return patches
 
 def check_patch_extraction(extract_patches_fn):
     """ This function checks, whether patch extraction is implemented correctly
