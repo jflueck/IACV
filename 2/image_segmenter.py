@@ -35,13 +35,13 @@ class ImageSegmenter:
         
         img = sample_dd['img']
         H, W, C = img.shape
-        p = 3
+        p = 7
         
         # Extract intensities as features
         # comment this line if you want to use patches
-        color_features = img.reshape(-1, C)
-        #color_features = extract_patches(img, p)
-        #color_features = color_features.reshape(-1, C*p*p)
+        #color_features = img.reshape(-1, C)
+        color_features = extract_patches(img, p)
+        color_features = color_features.reshape(-1, C*p*p)
 
         # Create a grid of pixel positions
         x, y = np.meshgrid(np.arange(W), np.arange(H))
