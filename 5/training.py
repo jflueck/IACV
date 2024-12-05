@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 def train_model(
     model,
     train_loader,
-    val_loader, 
+    val_loader,
+    test_loader, 
     num_epochs,
     criterion,
     optimizer,
@@ -48,6 +49,7 @@ def train_model(
         'val_loss': [],
         'train_acc': [],
         'val_acc': [],
+        'test_acc': [],
         'best_epoch': 0
     }
 
@@ -107,16 +109,20 @@ def train_model(
         # Calculate average validation loss and accuracy
         val_loss = val_loss / len(val_loader.dataset)
         val_acc = correct / total
+        test_acc = evaluate_model(model, test_loader, device=device)
 
         # Logging the metrics
         training_log['train_loss'].append(train_loss)
         training_log['val_loss'].append(val_loss)
         training_log['train_acc'].append(train_acc)
         training_log['val_acc'].append(val_acc)
+        training_log['test_acc'].append(test_acc)
 
         print(f"Epoch [{epoch+1}/{num_epochs}] "
               f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc*100:.2f}%, "
-              f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc*100:.2f}%")
+              f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc*100:.2f}%, "
+              f"Test Acc: {test_acc*100:.2f}%")
+        
 
         # Check if the current model is the best based on the selected metric
         if best_of == "accuracy" and val_acc > best_metric:
