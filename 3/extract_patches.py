@@ -13,7 +13,7 @@ def extract_patches(img, p):
 
     for i in range(p):
         for j in range(p):
-            rolled_img = np.roll(np.roll(img, -i+1, axis=0), -j+1, axis=1)
+            rolled_img = np.roll(np.roll(img, -i+p//2, axis=0), -j+p//2, axis=1)
             patches[:, :, (i * p + j) * C:(i * p + j + 1) * C] = rolled_img
 
     return patches
