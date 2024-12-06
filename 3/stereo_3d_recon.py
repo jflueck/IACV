@@ -102,7 +102,7 @@ def compute_ncc(img_l, img_r, p):
     return corr[p:H-p, p:W-p, p:W-p]
 
 class Stereo3dReconstructor:
-    def __init__(self, p=5, w_mode='none'):
+    def __init__(self, p=8, w_mode='none'):
         """
         Feel free to add hyper parameters here, but be sure to set defaults
         
